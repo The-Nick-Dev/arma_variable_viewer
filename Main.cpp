@@ -26,7 +26,7 @@ float g_global_color[4] = { 0.00f, 0.00f, 0.00f, 1.00f };
 std::vector<std::pair<std::string, std::pair<float, std::intptr_t>>> g_variables_list;
 uintptr_t g_baseAddress = 0;
 
-// --- FUNCIÓN DE LECTURA EXTERNA ---
+// Read from memory function
 template <typename T>
 T Read(uintptr_t address) {
     if (!hProcess || address == 0) return T();
@@ -35,7 +35,7 @@ T Read(uintptr_t address) {
     return buffer;
 }
 
-// Función especial para leer strings de la memoria del juego
+// Custom function for reading Arma 3 game strings
 std::string ReadGameString(uintptr_t address) {
     if (!hProcess || address == 0) return "";
 
@@ -248,13 +248,12 @@ void DrawMainMenu() {
     }
 
     // Status
-    ImGui::Text("Estado: %s", hProcess ? "Conectado" : "No conectado");
-    ImGui::SameLine();
+    //ImGui::Text("Estado: %s", hProcess ? "Conectado" : "No conectado");
+
     if (hProcess) {
-        ImGui::TextColored(ImVec4(0, 1, 0, 1), " ✓");
-    }
-    else {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), " ✗");
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Conectado");
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "No conectado");
     }
 
     ImGui::Separator();
@@ -266,15 +265,15 @@ void DrawMainMenu() {
     ImGui::Separator();
 
     // Variables Table
-    ImGui::Text("Variables de Misión: %d", (int)g_variables_list.size());
+    ImGui::Text("Variables: %d", (int)g_variables_list.size());
 
-    if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 400), true)) {
-        if (ImGui::BeginTable("VarsTable", 3,
+    if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), true)) {
+        if (ImGui::BeginTable("VarsTable", 2,
             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable)) {
 
-            ImGui::TableSetupColumn("Nombre Variable", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Valor", ImGuiTableColumnFlags_WidthFixed, 100);
+            ImGui::TableSetupColumn("Nombre", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Valor", ImGuiTableColumnFlags_WidthFixed, 200);
             ImGui::TableHeadersRow();
 
             for (const auto& var : g_variables_list) {
@@ -354,6 +353,18 @@ int main() {
         // Draw our menu
         DrawMainMenu();
 
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.KeyCtrl) {
+            if (ImGui::IsKeyPressed(ImGuiKey_C)) { // Ctrl+C
+                ConnectToGame();
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_E)) { // Ctrl+E
+                g_variables_list = ScanMissionVariables();
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_L)) { // Ctrl+L
+                g_variables_list.clear();       
+            }
+        }
 
         // Rendering
         ImGui::Render();
